@@ -1,0 +1,77 @@
+# PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: 6goasis
+  name: 6goasis-edge-pvc    # Changed from 6goaisis to goaisis
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: microk8s-hostpath
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 6goasis-edge-deployment    # Changed from 6goasis to 6goasis
+  namespace: 6goasis
+  labels:
+    app: 6goasis-edge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: 6goasis-edge
+  template:
+    metadata:
+      labels:
+        app: 6goasis-edge
+    spec:
+      containers:
+      - name: 6goasis-edge
+        image: localhost:32000/carla-edge:registry
+        imagePullPolicy: Always
+        # Use the Kafka service's IP address in the command
+        #command: ["/bin/sh", "-c", "tail -f /dev/null"]
+        command: ["/bin/sh", "-c", "./edge_commands.sh kafka"]  # Use kafka-external's ClusterIP
+        env:
+          - name: KAFKA_HOST
+            value: "kafka.kafka.svc" #"10.1.0.1" #"kafka-0.kafka.kafka.svc.cluster.local"
+          - name: KAFKA_PORT
+            value: "9093" #"9092"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: 6goasis-edge-storage
+          mountPath: /home/edge_files
+      volumes:
+      - name: 6goasis-edge-storage
+        persistentVolumeClaim:
+          claimName: 6goasis-edge-pvc
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-6goasis-service    # Changed from 6goasis to goasis
+spec:
+  selector:
+    app: 6goasis-edge
+  ports:
+  - protocol: TCP
+    port: 9092
+    targetPort: 9092
+    name: main-port    # Added required port name
+  - protocol: TCP
+    port: 9093
+    targetPort: 9093
+    name: aux-port     # Added required port name
+  type: ClusterIP

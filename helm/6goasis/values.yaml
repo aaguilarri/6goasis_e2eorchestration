@@ -1,0 +1,18 @@
+replicaCount: 1
+
+image:
+  repository: localhost:32000/carla_edge:registry
+  tag: "1.16.0"
+  pullPolicy: Always
+
+service:
+  name: carla_edge
+  type: ClusterIP
+  port: 9092
+  targetPort: 9092
+  port: 9093
+  targetPort: 9093
+
+
+#nodes:
+#  cluster: 'saiacheron'

@@ -1,0 +1,72 @@
+#!/bin/bash
+
+ITH=wlp58s0
+
+sudo iptables -F
+sudo iptables -X
+sudo iptables -t nat -F
+sudo iptables -t nat -X
+sudo iptables -t mangle -F
+sudo iptables -t mangle -X
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P FORWARD ACCEPT
+sudo iptables -P OUTPUT ACCEPT
+
+#ip6tables -F
+#ip6tables -X
+#ip6tables -t nat -F
+#ip6tables -t nat -X
+#ip6tables -t mangle -F
+#ip6tables -t mangle -X
+#ip6tables -P INPUT ACCEPT
+#ip6tables -P FORWARD ACCEPT
+#ip6tables -P OUTPUT ACCEPT
+
+
+sudo ip tuntap add name ogstun mode tun
+sudo ip addr add 10.45.0.1/16 dev ogstun
+#ip addr add 2001:db8:cafe::1/48 dev ogstun
+sudo ip link set ogstun up
+
+sudo sysctl -w net.ipv4.ip_forward=1
+#sysctl -w net.ipv6.conf.all.forwarding=1
+
+sudo iptables -t nat -A POSTROUTING -s 10.45.0.0/16 ! -o ogstun -j MASQUERADE
+#ip6tables -t nat -A POSTROUTING -s 2001:db8:cafe::/48 ! -o ogstun -j MASQUERADE
+
+sudo iptables -I INPUT -i ogstun -j ACCEPT
+#sudo iptables -I INPUT -s 10.45.0.0/16 -j DROP
+#ip6tables -I INPUT -s 2001:db8:cafe::/48 -j DROP
+
+# Set up NAT (Network Address Translation) to allow internet sharing
+sudo iptables -t nat -A POSTROUTING -o $ITH -j MASQUERADE
+
+# Allow traffic from the marco/open5gs interface to pass through
+sudo iptables -A FORWARD -i ogstun -o $ITH -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# Allow traffic from the wlp0s20f3 interface to pass through
+sudo iptables -A FORWARD -i $ITH -o ogstun -j ACCEPT
+
+
+for OUT in $(ps aux | grep -v grep | grep open5gs| awk '{print $2}') ; do sudo kill -9 $OUT; done
+for OUT in $(ps aux | grep -v grep | egrep "npm|HOSTNAME" | awk '{print $2}') ; do sudo kill -9 $OUT; done
+
+sleep 1
+
+sudo rm -rf /home/marco/open5gs/install/var/log/open5gs/*
+
+#cd /home/ubuntu/src/webui/ && HOSTNAME=22.22.22.3 PORT=80 npm run dev &
+#cd /home/ubuntu/
+sudo HOSTNAME=10.42.0.1 PORT=8080 npm run dev --prefix /home/marco/open5gs/webui/ >/dev/null 2>&1 &
+sleep 3
+
+sudo /home/marco/open5gs/install/bin/open5gs-nrfd  &
+sudo /home/marco/open5gs/install/bin/open5gs-amfd  &
+sudo /home/marco/open5gs/install/bin/open5gs-smfd  &
+sudo /home/marco/open5gs/install/bin/open5gs-upfd  &
+sudo /home/marco/open5gs/install/bin/open5gs-ausfd &
+sudo /home/marco/open5gs/install/bin/open5gs-udmd &
+sudo /home/marco/open5gs/install/bin/open5gs-udrd &
+sudo /home/marco/open5gs/install/bin/open5gs-pcfd  &
+sudo /home/marco/open5gs/install/bin/open5gs-nssfd &
+sudo /home/marco/open5gs/install/bin/open5gs-bsfd  &
