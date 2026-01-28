@@ -1,7 +1,8 @@
 # 6goasis_e2eorchestration
 Developments for 6GOASIS E2EORCHSETRATION Project
 
-Acknowledgments
+Acknowledgments:
+
 This work has been funded by the “Ministerio de Asuntos
 Económicos y Transformación Digital” and the European Union-
 NextGenerationEU in the frameworks of the “Plan de Recuperación,
