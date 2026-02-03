@@ -1,0 +1,74 @@
+services:
+  broker:
+    image: apache/kafka:latest
+    container_name: broker
+    ports:
+      - "9092:9092"        # Kafka external access
+      - "29092:29092"      # Internal access
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,EXTERNAL://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:29093
+      KAFKA_NODE_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+
+  topic-init:
+    image: apache/kafka:latest
+    depends_on:
+      - broker
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "
+      /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --topic 6g-metrics --bootstrap-server broker:29092
+      /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --topic service-migration --bootstrap-server broker:29092
+      "
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"  # Expose Prometheus to host
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"  # Expose Grafana to host
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  kafka-consumer:
+    build:
+      context: ./consumer
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    depends_on:
+      - broker
+      - topic-init
+    ports:
+      - "8000:8000"  # Expose metrics endpoint
+    restart: unless-stopped
+
+# Network configuration
+networks:
+  default:
+    driver: bridge
+
+# Volume for persistent Grafana data
+volumes:
+  grafana-data:
