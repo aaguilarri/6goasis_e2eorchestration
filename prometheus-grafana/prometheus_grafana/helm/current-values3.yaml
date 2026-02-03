@@ -1,6 +1,0 @@
-prometheus:
-  prometheusSpec:
-    additionalScrapeConfigs: |
-      - job_name: "6g-metrics"
-        static_configs:
-          - targets: ["10.1.4.214:8000"]

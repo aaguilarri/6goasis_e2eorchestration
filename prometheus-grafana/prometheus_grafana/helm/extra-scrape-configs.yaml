@@ -1,7 +1,0 @@
-apiVersion: v1
-data:
-  extra-scrape-configs.yaml: ""
-kind: Secret
-metadata:
-  creationTimestamp: null
-  name: extra-scrape-configs

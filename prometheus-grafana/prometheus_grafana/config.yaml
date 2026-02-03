@@ -1,5 +1,0 @@
-kafka:
-  bootstrap.servers: "kafka:9092"
-  group.id: "6g-monitoring-group"
-  auto.offset.reset: "earliest"
-  topic: "6g-metrics"
