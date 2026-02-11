@@ -1,0 +1,19 @@
+# Copyright 2026 Nearby Computing S.L.
+apiVersion: v2
+name: cttcCarla
+description: "Carla edge application for 6GOASIS Block chart"
+type: application
+version: 0.0.4-weighted-query
+appVersion: 0.0.1
+maintainers:
+  - name: Michail Dalgitsis
+    email: michail.dalgitsis@nearbycomputing.com
+    url: www.nearbycomputing.com
+keywords:
+# categories
+  - Edge
+icon: https://h2020-onfire.eu/images/CTTC_logo_square.png
+deprecated: false
+annotations:
+  vendor: CTTC
+  displayName: Carla Edge Application (CTTC)

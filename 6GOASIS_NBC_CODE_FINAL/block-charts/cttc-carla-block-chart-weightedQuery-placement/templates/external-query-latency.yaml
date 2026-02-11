@@ -1,0 +1,22 @@
+# Copyright 2026 Nearby Computing S.L.
+
+{{- if .Values.connections.prometheusQueries.latency.enabled }}
+apiVersion: blocks/v1beta1
+kind: Connection
+metadata:
+  name: {{ .Values.connections.prometheusQueries.latency.variables.connName }}-{{ .Values.Block.InstanceId }}
+  namespace: default
+  labels:
+    {{ toYaml .Values.connections.prometheusQueries.latency.variables.labels }}
+spec:
+  externalTarget:
+    prometheus:
+      query: |-
+        {{ .Values.connections.prometheusQueries.latency.configuration.prometheus.query.metric_name }}
+      endpoint:
+        insecureValue: |
+          address: {{ .Values.connections.prometheusQueries.latency.configuration.prometheus.address }}
+  value: |
+    {{`{{ toYaml .Target }}`}}
+
+{{- end }}

@@ -1,0 +1,37 @@
+# Copyright 2026 Nearby Computing S.L.
+
+{{- if .Values.koc.enabled }}
+apiVersion: blocks/v1beta1
+kind: K8sObjectConnector
+metadata:
+  name: carla-placement-notification
+  namespace: default
+spec:
+  connectionListSelectors:
+    nodeLocation:
+      matchLabels:
+        order: application-first
+        project: oasis
+      required: 0
+      limit: 1
+  template:
+    metadata:
+      labels:
+        k8sobject: carla-placement-notification
+    spec:
+      objectGoTemplate: |
+        apiVersion: oasis.oasis.nearbycomputing/v1
+        kind: CarlaAppPlacement
+        metadata:
+          name: {{ .Values.Block.InstanceId }}
+          namespace: nearbyone-porter
+        spec:
+          appId: "{{ .Values.Block.InstanceId }}"
+          edgeNodeId: "{{`{{ .Connections.nodeLocation.carlaClientNewLocation }}`}}"
+          kafka:
+            broker: "{{ .Values.koc.kafka.broker }}"
+            topic: "{{ .Values.koc.kafka.topic }}"
+            message:
+              eventType: "{{ .Values.koc.kafka.message.eventType }}"
+
+{{- end }}

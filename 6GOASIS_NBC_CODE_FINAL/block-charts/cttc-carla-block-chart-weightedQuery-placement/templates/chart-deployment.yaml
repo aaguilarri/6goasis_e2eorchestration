@@ -1,0 +1,35 @@
+# Copyright 2026 Nearby Computing S.L.
+
+apiVersion: blocks/v1beta1
+kind: ChartDeployment
+metadata:
+  name: cttc-carla
+  namespace: {{ .Values.Block.InstanceId }}
+spec:
+  template:
+    metadata:
+      labels:
+        application: {{ .Values.deployments.cttcCarla.variables.appname }}-{{ .Values.Block.InstanceId }}
+        block: {{ .Values.Block.InstanceId }}
+    spec:
+      k8sClusterSelector:
+        weightsQuery:
+          selectionAndConfirmation:
+            prometheus:
+              query: |-
+                rru_prb_thr_ul >= 0 and rru_prb_thr_ul <= 7
+              targetLabel: oasis_edge
+              address: "http://porter-expose-oasis-prometheus:9090"
+      chart: {{ .Values.deployments.cttcCarla.configuration.chart.name }}
+      version: {{ .Values.deployments.cttcCarla.configuration.chart.version }}
+      repo:
+        url: https://{{ .Values.deployments.cttcCarla.configuration.chart.baseRegistryUrl }}/{{ .Values.deployments.cttcCarla.configuration.chart.repo }}
+{{- if .Values.deployments.cttcCarla.configuration.chart.auth.enabled }}
+        username: {{ .Values.deployments.cttcCarla.configuration.chart.auth.username }}
+        password:
+          secretKeyRef:
+            name: {{ .Values.deployments.cttcCarla.configuration.chart.auth.secret.name }}
+            key: {{ .Values.deployments.cttcCarla.configuration.chart.auth.secret.key }}
+{{- end }}
+      namespaceOverride: 6goasis
+      values: |

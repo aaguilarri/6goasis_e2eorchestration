@@ -1,0 +1,9 @@
+apiVersion: oasis.oasis.nearbycomputing/v1
+kind: CarlaAppPlacement
+metadata:
+  labels:
+    app.kubernetes.io/name: kafkanotify-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: carlaappplacement-sample
+spec:
+  # TODO(user): Add fields here

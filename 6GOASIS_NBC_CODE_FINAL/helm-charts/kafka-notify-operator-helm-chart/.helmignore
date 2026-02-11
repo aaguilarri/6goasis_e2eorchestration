@@ -1,0 +1,25 @@
+# Copyright 2026 Nearby Computing S.L.
+
+.DS_Store
+
+# Version control directories
+.git/
+.gitignore
+.bzr/
+.hg/
+.hgignore
+.svn/
+
+# Backup and temporary files
+*.swp
+*.tmp
+*.bak
+*.orig
+*~
+
+# IDE and editor-related files
+.idea/
+.vscode/
+
+# Helm chart artifacts
+dist/chart/*.tgz

@@ -1,0 +1,99 @@
+# Copyright 2026 Nearby Computing S.L.
+
+{{- if .Values.crd.enable }}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.crd.keep }}
+    "helm.sh/resource-policy": keep
+    {{- end }}
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: carlaappplacements.oasis.oasis.nearbycomputing
+spec:
+  group: oasis.oasis.nearbycomputing
+  names:
+    kind: CarlaAppPlacement
+    listKind: CarlaAppPlacementList
+    plural: carlaappplacements
+    singular: carlaappplacement
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: CarlaAppPlacement is the Schema for the carlaappplacements API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: CarlaAppPlacementSpec defines the desired state of CarlaAppPlacement.
+            properties:
+              appId:
+                type: string
+              edgeNodeId:
+                type: string
+              foo:
+                description: Foo is an example field of CarlaAppPlacement. Edit carlaappplacement_types.go
+                  to remove/update
+                type: string
+              kafka:
+                properties:
+                  broker:
+                    type: string
+                  message:
+                    properties:
+                      eventType:
+                        type: string
+                    required:
+                    - eventType
+                    type: object
+                  topic:
+                    type: string
+                required:
+                - broker
+                - message
+                - topic
+                type: object
+            required:
+            - appId
+            - edgeNodeId
+            - kafka
+            type: object
+          status:
+            description: CarlaAppPlacementStatus defines the observed state of CarlaAppPlacement.
+            properties:
+              kafkaNotificationSent:
+                type: boolean
+              lastNotificationTime:
+                type: string
+              lastNotifiedEdgeNodeId:
+                description: |-
+                  INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+                  Important: Run "make" to regenerate code after modifying this file
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+{{- end -}}

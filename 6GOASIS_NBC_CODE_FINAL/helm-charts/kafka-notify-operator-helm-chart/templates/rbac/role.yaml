@@ -1,0 +1,38 @@
+# Copyright 2026 Nearby Computing S.L.
+
+{{- if .Values.rbac.enable }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+  name: kafkanotify-operator-manager-role
+rules:
+- apiGroups:
+  - oasis.oasis.nearbycomputing
+  resources:
+  - carlaappplacements
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - oasis.oasis.nearbycomputing
+  resources:
+  - carlaappplacements/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - oasis.oasis.nearbycomputing
+  resources:
+  - carlaappplacements/status
+  verbs:
+  - get
+  - patch
+  - update
+{{- end -}}

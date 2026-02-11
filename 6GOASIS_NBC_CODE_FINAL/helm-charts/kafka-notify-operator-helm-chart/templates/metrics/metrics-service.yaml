@@ -1,0 +1,20 @@
+# Copyright 2026 Nearby Computing S.L.
+
+{{- if .Values.metrics.enable }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafkanotify-operator-controller-manager-metrics-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+    control-plane: controller-manager
+spec:
+  ports:
+    - port: 8443
+      targetPort: 8443
+      protocol: TCP
+      name: https
+  selector:
+    control-plane: controller-manager
+{{- end }}

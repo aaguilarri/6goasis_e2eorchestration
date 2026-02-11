@@ -1,0 +1,124 @@
+# Copyright 2026 Nearby Computing S.L.
+{{- if .Values.connections.k8sClusterPlacement.enabled }}
+apiVersion: blocks/v1beta1
+kind: ConnectionAggregator
+metadata:
+  name: node-name-{{ .Values.Block.InstanceId }}
+spec:
+  connectionListSelectors:
+    queryCon:
+      matchLabels:
+        oasis: ran-metrics
+      required: 0    
+      limit: 1
+  template:
+    metadata:
+      labels:
+        patch.binding: "true"
+    spec:
+      value: |
+        metrics:
+        {{`{{ toYaml .Connections.queryCon | indent 10 }}`}}
+
+        {{`{{- $metrics := dict }}`}}
+        {{`{{- if .Connections.queryCon }}`}}
+        {{`{{- range .Connections.queryCon }}`}}
+          {{`{{- $ue := .metric.ue_id | default "unknown" }}`}}
+          {{`{{- $rawVal := index .value 1 | default -1.0 }}`}}
+          {{`{{- $parsed := $rawVal | float64 }}`}}
+          {{`{{- $_ := set $metrics $ue $parsed }}`}}
+        {{`{{- end }}`}}
+        {{`{{- end }}`}}
+
+        debug_metrics:
+        {{`{{- toYaml $metrics | nindent 10 }}`}}
+
+        {{- $edgeMap := .Values.ranAwareAlgorithmicLogic.edgeMapping }}
+        debug_edge_map:
+        {{- toYaml $edgeMap | nindent 10 }}
+
+        {{- $reverseMap := dict }}
+        {{- range $ue, $edge := $edgeMap }}
+          {{- $_ := set $reverseMap $edge $ue }}
+        {{- end }}
+
+        debug_reverse_edge_map:
+        {{- toYaml $reverseMap | nindent 10 }}
+
+        {{- $currentEdge := .Values.ranAwareAlgorithmicLogic.currentEdge }}
+        {{- $currentUE := index $reverseMap $currentEdge | default "" }}
+        {{- $otherUE := "" }}
+        {{- range $ue, $_ := $edgeMap }}
+          {{- if ne $ue $currentUE }}
+            {{- $otherUE = $ue }}
+          {{- end }}
+        {{- end }}
+
+        debug_network_paths:
+          currentUE: {{ $currentUE }}
+          otherUE: {{ $otherUE }}
+
+        {{- $limit := float64 .Values.ranAwareAlgorithmicLogic.maxThroughputMbps }}
+        
+        {{`{{- $currentVal := -1.0 }}`}}
+        {{`{{- if hasKey $metrics `}}{{ $currentUE | quote }}{{` }}`}}
+          {{`{{- $currentVal = float64 (get $metrics `}}{{ $currentUE | quote }}{{`) }}`}}
+        {{`{{- end }}`}}
+
+        {{`{{- $otherVal := -1.0 }}`}}
+        {{`{{- if hasKey $metrics `}}{{ $otherUE | quote }}{{` }}`}}
+          {{`{{- $otherVal = float64 (get $metrics `}}{{ $otherUE | quote }}{{`) }}`}}
+        {{`{{- end }}`}}
+
+
+        debug_casting:
+          current_raw: {{`{{ get $metrics "`}}{{ $currentUE }}{{`" }}`}}
+          current_raw_type: {{`{{ typeOf (get $metrics "`}}{{ $currentUE }}{{`") }}`}}
+          other_raw: {{`{{ get $metrics "`}}{{ $otherUE }}{{`" }}`}}
+          other_raw_type: {{`{{ typeOf (get $metrics "`}}{{ $otherUE }}{{`") }}`}}
+          currentVal: {{`{{ $currentVal }}`}}
+          currentVal_type: {{`{{ typeOf $currentVal }}`}}
+          otherVal: {{`{{ $otherVal }}`}}
+          otherVal_type: {{`{{ typeOf $otherVal }}`}}
+          limit: {{ $limit }}
+          limit_type: {{ typeOf $limit }}
+
+        currentVal_before_if: {{`{{ $currentVal }}`}}
+        currentVal_type_before_if: {{`{{ typeOf $currentVal }}`}}
+        {{`{{- if ge $currentVal 7.0 }}`}}
+        result: greater_or_equal_limit
+        {{`{{- else }}`}}
+        result: less_than_limit
+        {{`{{- end }}`}}
+
+        {{- $selectedEdgeTestOther := "" }}
+        {{- $selectedEdgeTestOther = index $edgeMap $otherUE }}
+        selectedEdgeTestValueOther: {{ $selectedEdgeTestOther }}
+
+        
+        {{- $currentEdgeTest := $currentEdge }}
+        
+        debugEdgeSiteBefore:
+          currentEdgeTest: {{ $currentEdgeTest }}
+        
+        {{- $selectedEdge := "" }}
+        
+
+        debugEdgeSiteAfter:
+        selectedEdge: {{ $selectedEdge }}
+        
+        {{`{{- if and (ge $currentVal 0.0) (le $currentVal 7.0) }}`}}
+        resultA: equal_and_less_than_limit_for_current
+        resultEdgeNode: {{ $currentEdge }}
+        spec:
+          k8sClusterName: "d7d3204a-181a-4f33-a931-29b49d018c8c"
+        {{`{{- end }}`}}
+
+        {{`{{- if ge $currentVal 7.0 }}`}}
+        resultB: more_than_seven
+        resultEdgeNode: {{ index $edgeMap $otherUE }}
+        spec:
+          k8sClusterName: "ebb53258-8ce4-4692-82c9-f0cab07aba5b"
+        {{`{{- end }}`}}
+
+{{- end }}

@@ -1,0 +1,27 @@
+# Copyright 2026 Nearby Computing S.L.
+
+apiVersion: blocks/v1beta1
+kind: ConnectionSet
+metadata:
+  name: message-order-{{ .Values.Block.InstanceId }}
+spec:
+  targetListSelector:
+    kind: ChartRelease
+    matchLabels:
+      application: {{ .Values.deployments.cttcCarla.variables.appname }}-{{ .Values.Block.InstanceId }}
+      block: {{ .Values.Block.InstanceId }}
+  template:
+    metadata:
+      labels:
+        order: application-first
+        project: oasis
+    spec:
+      value: |
+        name: {{`{{ .Target.spec.k8sClusterName }}`}}
+        {{`{{- if eq .Target.spec.k8sClusterName "d7d3204a-181a-4f33-a931-29b49d018c8c" }}`}}
+        carlaClientNewLocation: "oasis-edge1"
+        {{`{{- else if eq .Target.spec.k8sClusterName "ebb53258-8ce4-4692-82c9-f0cab07aba5b" }}`}}
+        carlaClientNewLocation: "oasis-edge2"
+        {{`{{- else }}`}}
+        carlaClientNewLocation: "oasis-edge1"
+        {{`{{- end }}`}}

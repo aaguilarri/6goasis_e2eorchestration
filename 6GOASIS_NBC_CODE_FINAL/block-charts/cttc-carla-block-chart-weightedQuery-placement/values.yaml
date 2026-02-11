@@ -1,0 +1,76 @@
+# Copyright 2026 Nearby Computing S.L.
+
+Block:
+  InstanceId: 12345678-9012-3456-7890-123456789012
+placement:
+  site:
+    label: site01
+
+deployments:
+  cttcCarla:
+    variables:
+      appname: cttcCarla
+    configuration:
+      chart:
+        baseRegistryUrl: registry.example.com
+        repo: chartrepo/6goasis-apps
+        name: 6goasis-edge-carla
+        version: 0.1.0-deployment
+        auth:
+          enabled: true
+          username: your-username
+          password: "your-password"
+          secret:
+            name: chart-secret
+            key: secretKey
+    values: ""
+
+connections:
+  prometheusQueries:
+    enabled: false
+    latency:
+      enabled: false
+      variables:
+        connName: ran-latency
+        labels:      
+          oasis: ran-metrics
+      configuration:
+        prometheus: 
+          insecure: 
+            enabled: true
+          address: http://porter-expose-oasis-prometheus:9090
+          query: 
+            metric_name: network_latency_seconds
+            labels: 
+              cell_id: ""
+    throughput:
+      variables:
+        connName: ran-throughput-ul
+        labels:      
+          oasis: ran-metrics
+      configuration:
+        prometheus: 
+          insecure: 
+            enabled: true
+          address: http://porter-expose-oasis-prometheus:9090
+          query: 
+            metric_name: rru_prb_thr_ul
+            labels: 
+              cell_id: ""
+  k8sClusterPlacement:
+    enabled: false
+
+koc:
+  enabled: true
+  kafka:
+    broker: "10.22.22.7:9092"
+    topic: "service-migration"
+    message:
+      eventType: "MIGRATION"
+
+ranAwareAlgorithmicLogic:
+  maxThroughputMbps: 7.0
+  edgeMapping:
+    "0": oasis-edge1
+    "1": oasis-edge2
+  currentEdge: oasis-edge1

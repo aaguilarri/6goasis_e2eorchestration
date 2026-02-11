@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- oasis_v1_carlaappplacement.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

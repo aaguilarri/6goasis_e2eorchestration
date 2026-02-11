@@ -1,0 +1,14 @@
+apiVersion: oasis.oasis.nearbycomputing/v1
+kind: CarlaAppPlacement
+metadata:
+  name: sample-placement
+  namespace: nearbyone-porter
+spec:
+  appId: "carla-sim-001"
+  edgeNodeId: "edge-node-42"
+  kafka:
+    broker: "kafka:9092"
+    topic: "paths"
+    message:
+      eventType: "MIGRATION"
+
